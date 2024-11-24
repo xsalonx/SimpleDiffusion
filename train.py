@@ -1,7 +1,10 @@
 import argparse
 from modules import Unet, Trainer
-from torch.utils.data import DataLoader
+# from torch.utils.data import DataLoader
 from dataset import Dataset
+import os
+from torchvision import datasets, transforms
+from torch.utils.data import DataLoader
 from torch.optim import Adam
 
 #Parse arguments
@@ -58,6 +61,17 @@ else:
 #load dataset
 ds = Dataset(path, img_size=image_size)
 dataloader = DataLoader(ds, batch_size=batch_size, shuffle=True, drop_last=True)
+
+# transform = transforms.Compose([
+#     transforms.Resize(image_size),
+#     transforms.CenterCrop(image_size),
+#     transforms.ToTensor(),
+#     transforms.Normalize([0.5], [0.5])  # Normalize to [-1, 1]
+# ])
+
+# # Load the dataset
+# dataset = datasets.ImageFolder(root=path, transform=transform)
+# dataloader = DataLoader(dataset, batch_size=16, shuffle=True)
 
 #create trainer
 trainer = Trainer(img_size=image_size, timesteps=timesteps, start=0.0001, end=0.02, create_images= disable_images, tensorboard = disable_tensorboard, schedule=beta_schedule)

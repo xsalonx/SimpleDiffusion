@@ -1,3 +1,4 @@
+import tqdm
 from torch import nn
 import torch
 import math
@@ -10,7 +11,7 @@ import os
 import glob
 from torch.utils.tensorboard import SummaryWriter
 from torch.optim import Adam
-
+import os
 
 def show_tensor_image(image):
     """
@@ -168,6 +169,9 @@ class Trainer:
 
         self.optimizer = Adam(self.model.parameters(), lr=1e-4)
 
+        if os.path.exists('autosave.pth'):
+            self.load_model('autosave.pth')
+
         #disable flags
         self.create_images = create_images
         self.tensorboard = tensorboard
@@ -309,23 +313,28 @@ class Trainer:
         """
         Trains model for epochs using dataloader and optimizer 
         """
+        last_epoch = 0
         #Create or empty output folders
         if self.create_images:
             exists = os.path.exists('outputs')
             if not exists:
                 os.makedirs('outputs')
             else:
-                files = glob.glob("outputs/*")
-                for f in files:
-                    os.remove(f)
+                files = os.listdir('outputs/')
+                if len(files) > 0:
+                    last_epoch = max(map(lambda c: int(c[10:].split('.')[0]), files))
+                # files = glob.glob("outputs/*")
+                # for f in files:
+                    # os.remove(f)
 
             exists = os.path.exists('plots')
             if not exists:
                 os.makedirs('plots')
             else:
-                files = glob.glob("plots/*")
-                for f in files:
-                    os.remove(f)
+                pass
+                # files = glob.glob("plots/*")
+                # for f in files:
+                    # os.remove(f)
 
         #Create tensorboard run
         if self.tensorboard:
@@ -335,8 +344,8 @@ class Trainer:
         batch_size = dataloader.batch_size
 
         #Train
-        for epoch in range(epochs):
-            for step, batch in enumerate(dataloader):
+        for epoch in range(last_epoch, epochs):
+            for step, batch in tqdm.tqdm(enumerate(dataloader)):
                 self.optimizer.zero_grad()
                 #create random timestep in possible timesteps
                 t = torch.randint(0, self.T, (batch_size,), device=self.device).long()
